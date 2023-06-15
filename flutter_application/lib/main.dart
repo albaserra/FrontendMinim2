@@ -1,4 +1,4 @@
-    
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application/blocs/user/user_bloc.dart';
 import 'package:flutter_application/src/LocaleString.dart';
@@ -24,34 +24,69 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:flutter_application/src/LocaleString.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application/src/controllers/language_controller.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Firebase.initializeApp();
   await dotenv.load(fileName: ".env");
-  runApp(MyApp());
+  // Inicializa Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  //runApp(MyApp());
-
-    // Crear instancia de LanguageController
-  //final languageController = LanguageController();
   
-  //runApp(MyApp(languageController: languageController));
+  // Configura el manejo de Dynamic Links
+  handleDynamicLinks();
+
+  runApp(MyApp(key: UniqueKey(), initialRoute: '/login_screen'));
 }
 
+void handleDynamicLinks() async {
+  // Comprueba si hay un Dynamic Link pendiente al abrir la aplicación
+  final PendingDynamicLinkData? data = await FirebaseDynamicLinks.instance.getInitialLink();
+  final Uri? deepLink = data?.link;
+
+  if (deepLink != null) {
+    // Procesa el Dynamic Link
+    processDynamicLink(deepLink);
+  }
+
+  // Escucha los Dynamic Links en segundo plano
+  FirebaseDynamicLinks.instance.onLink(
+    onSuccess: (PendingDynamicLinkData dynamicLinkData) async {
+    final Uri deepLink = dynamicLinkData.link;
+
+    if (deepLink != null) {
+      // Procesa el Dynamic Link
+      processDynamicLink(deepLink);
+    }
+  }, onError: (OnLinkErrorException e) async {
+    // Maneja los errores si los hubiera
+    print('Error al obtener el Dynamic Link: ${e.message}');
+  });
+}
+
+void processDynamicLink(Uri deepLink) {
+  if (deepLink.path == '/') {
+    runApp(MyApp(key: UniqueKey(), initialRoute: '/login_screen'));
+  } else {
+    runApp(MyApp(key: UniqueKey(), initialRoute: '/login_screen'));
+  }
+}
+
+
+
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  final String initialRoute;
+
+  MyApp({required Key key, required String initialRoute})
+      : initialRoute = initialRoute,
+        super(key: key);
   //final LanguageController languageController;
   final LanguageController _languageController = Get.put(LanguageController());
   //const MyApp({Key? key, required this.languageController}) : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +108,7 @@ class MyApp extends StatelessWidget {
         locale: Locale('es', 'ES'),
           debugShowCheckedModeBanner: false,
           title: 'Price divider',
-          
+          initialRoute: initialRoute ?? '/',
           home: const LoginScreen(),
           onGenerateRoute: (RouteSettings settings) {
             switch (settings.name) {

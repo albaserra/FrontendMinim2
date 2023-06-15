@@ -61,14 +61,11 @@ dependencies:
   firebase_auth: ^4.2.0
   firebase_core: ^2.13.1
   cloud_firestore: ^4.8.0
+  
+  firebase_dynamic_links: ^5.3.3
 
   get:
-  
-
-
-
-
-dev_dependencies:
+  dev_dependencies:
   flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter
